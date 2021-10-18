@@ -2,36 +2,41 @@ import * as UTILS from '../../libs/utils.js';
 import * as MV from '../../libs/MV.js';
 
 /** @type {WebGLRenderingContext} */
+
 let gl;
 let canvas;
 let program;
-let protronsProgram;
+let protonsProgram;
 let eletronsProgram;
 
-
-const table_width = 3.0;
+const TABLE_WIDTH = 3.0;
 let table_height;
-const grid_spacing = 0.05;
-const grid = [];
 
-const protons = [];
+const GRID_SPACING = 0.05;
+let grid = [];
+
+let protons = [];
 const MAX_CHARGES = 200;
-const eletrons = [];
-let theta = 0;
+let eletrons = [];
 
+let thetaP = 0;
+const PROTONS_ANGLE_INCREMENT = 0.04;
+let thetaE = 0;
+const ELETRONS_ANGLE_INCREMENT = -0.04;
 
 function animate(time)
 {
-    window.requestAnimationFrame(animate);
-    
+    window.requestAnimationFrame(animate);    
     gl.clear(gl.COLOR_BUFFER_BIT);
+
+
 
     gl.useProgram(program);
 
     const w = gl.getUniformLocation(program, "table_width");
     const h = gl.getUniformLocation(program, "table_height");
     
-    gl.uniform1f(w, table_width);
+    gl.uniform1f(w, TABLE_WIDTH);
     gl.uniform1f(h, table_height);
 
     let color = gl.getUniformLocation(program, "color");
@@ -41,45 +46,39 @@ function animate(time)
 
 
 
-    gl.useProgram(protronsProgram);
+    gl.useProgram(protonsProgram);
 
-    const color2 = gl.getUniformLocation(protronsProgram, "color"); 
-    gl.uniform4f(color2, 0.0, 0.0, 1.0, 1.0); // green
+    const colorP = gl.getUniformLocation(protonsProgram, "color"); 
+    gl.uniform4f(colorP, 0.0, 0.0, 1.0, 1.0); // blue
 
-    const w2 = gl.getUniformLocation(protronsProgram, "table_width");
-    const h2 = gl.getUniformLocation(protronsProgram, "table_height");
-    gl.uniform1f(w2, table_width);
-    gl.uniform1f(h2, table_height);
+    const wP = gl.getUniformLocation(protonsProgram, "table_width");
+    const hP = gl.getUniformLocation(protonsProgram, "table_height");
+    gl.uniform1f(wP, TABLE_WIDTH);
+    gl.uniform1f(hP, table_height);
 
-    const uTheta1 =  gl.getUniformLocation(protronsProgram, "uTheta");
-    theta += 0.1;
-    gl.uniform1f(uTheta1, theta);
+    const uThetaP =  gl.getUniformLocation(protonsProgram, "uTheta");
+    thetaP += PROTONS_ANGLE_INCREMENT;
+    gl.uniform1f(uThetaP, thetaP);
 
     gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
 
 
 
-
-
     gl.useProgram(eletronsProgram);
 
-    const color1 = gl.getUniformLocation(eletronsProgram, "color"); 
-    gl.uniform4f(color1, 0.0, 1.0, 0.0, 1.0); // green
+    const colorE = gl.getUniformLocation(eletronsProgram, "color"); 
+    gl.uniform4f(colorE, 0.0, 1.0, 0.0, 1.0); // green
 
-    const w1 = gl.getUniformLocation(eletronsProgram, "table_width");
-    const h1 = gl.getUniformLocation(eletronsProgram, "table_height");
-    gl.uniform1f(w1, table_width);
-    gl.uniform1f(h1, table_height);
+    const wE = gl.getUniformLocation(eletronsProgram, "table_width");
+    const hE = gl.getUniformLocation(eletronsProgram, "table_height");
+    gl.uniform1f(wE, TABLE_WIDTH);
+    gl.uniform1f(hE, table_height);
 
     const uTheta =  gl.getUniformLocation(eletronsProgram, "uTheta");
-    theta += 0.1;
-    gl.uniform1f(uTheta, theta);
+    thetaE += ELETRONS_ANGLE_INCREMENT;
+    gl.uniform1f(uTheta, thetaE);
 
     gl.drawArrays(gl.POINTS, grid.length, protons.length);
-
-
-
-
 }
 
 
@@ -94,16 +93,16 @@ function setup(shaders)
 
 
     program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
-    protronsProgram = UTILS.buildProgramFromSources(gl, shaders["proton.vert"], shaders["shader1.frag"]);
+    protonsProgram = UTILS.buildProgramFromSources(gl, shaders["proton.vert"], shaders["shader1.frag"]);
     eletronsProgram = UTILS.buildProgramFromSources(gl, shaders["eletron.vert"], shaders["shader1.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     
-    table_height = table_width / (canvas.width/canvas.height);
+    table_height = TABLE_WIDTH/ (canvas.width/canvas.height);
 
-    for(let x = -table_width/2; x <= table_width/2; x += grid_spacing) {
-        for(let y = -table_height/2; y <= table_height/2; y += grid_spacing) {
+    for(let x = -TABLE_WIDTH/2; x <= TABLE_WIDTH/2; x += GRID_SPACING) {
+        for(let y = -table_height/2; y <= table_height/2; y += GRID_SPACING) {
             grid.push(MV.vec2(x, y));
         }
     }
@@ -117,7 +116,7 @@ function setup(shaders)
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    const vPositionP = gl.getAttribLocation(protronsProgram, "vPosition");
+    const vPositionP = gl.getAttribLocation(protonsProgram, "vPosition");
     gl.vertexAttribPointer(vPositionP, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPositionP);
 
@@ -132,12 +131,10 @@ function setup(shaders)
     });
 
     canvas.addEventListener("click", function(event) {
-        if (event.shiftKey) {
+        if (event.shiftKey) 
             addEletrons(event);
-        }
-        else {
+        else 
             addProtons(event);
-        }
     });
 
 
@@ -150,7 +147,7 @@ function resizeCanvas(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;  
     gl.viewport(0, 0, canvas.width, canvas.height);
-    table_height = table_width / (canvas.width/canvas.height);    
+    table_height = TABLE_WIDTH / (canvas.width/canvas.height);    
 }
 
 
@@ -162,7 +159,7 @@ function addProtons(event){
     
     console.log("Click at (" + x + ", " + y + ")");
 
-    let table_x = (x - canvas.width/2) / canvas.width * table_width;
+    let table_x = (x - canvas.width/2) / canvas.width * TABLE_WIDTH;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
 
     protons.push(MV.vec2(table_x, table_y));
@@ -178,12 +175,12 @@ function addEletrons(event){
 
     console.log("Click at (" + x + ", " + y + ") - SHIFT");
 
-    let table_x = (x - canvas.width/2) / canvas.width * table_width;
+    let table_x = (x - canvas.width/2) / canvas.width * TABLE_WIDTH;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
 
     eletrons.push(MV.vec2(table_x, table_y));
 
-    gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*(grid.length + 100) , MV.flatten(eletrons));
+    gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + 100) , MV.flatten(eletrons));
 }
 
 
