@@ -4,7 +4,7 @@ uniform float uTheta;
 
 void main()
 {
-    gl_PointSize = 4.0;
+    gl_PointSize = 10.0;
 
     float s = sin(uTheta);
     float c = cos(uTheta);
