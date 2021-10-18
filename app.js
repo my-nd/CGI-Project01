@@ -24,6 +24,8 @@ let thetaE = 0;
 const PROTONS_ANGLE_INCREMENT = 0.04;
 const ELETRONS_ANGLE_INCREMENT = -0.04;
 
+let hide = false;
+
 function animate(time)
 {
     window.requestAnimationFrame(animate);    
@@ -56,19 +58,21 @@ function animate(time)
     gl.uniform1f(wP, TABLE_WIDTH);
     gl.uniform1f(hP, table_height);
 
-    const uTheta =  gl.getUniformLocation(chargesProgram, "uTheta");
-    thetaP += PROTONS_ANGLE_INCREMENT;
-    gl.uniform1f(uTheta, thetaP);
-
-    gl.drawArrays(gl.POINTS, grid.length, protons.length);
-
-
-    gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negatie charges
-
-    thetaE += ELETRONS_ANGLE_INCREMENT;
-    gl.uniform1f(uTheta, thetaE);
-
-    gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
+    if (!hide) {
+        const uTheta =  gl.getUniformLocation(chargesProgram, "uTheta");
+        thetaP += PROTONS_ANGLE_INCREMENT;
+        gl.uniform1f(uTheta, thetaP);
+    
+        gl.drawArrays(gl.POINTS, grid.length, protons.length);
+    
+    
+        gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negatie charges
+    
+        thetaE += ELETRONS_ANGLE_INCREMENT;
+        gl.uniform1f(uTheta, thetaE);
+    
+        gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
+    }
 }
 
 
@@ -120,6 +124,15 @@ function setup(shaders)
         else 
             addProtons(event);
     });
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === " ") {
+            if(hide)
+                hide = false;
+            else
+                hide = true;
+        }
+    })
 
 
     window.requestAnimationFrame(animate);
