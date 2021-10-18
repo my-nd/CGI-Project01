@@ -24,7 +24,7 @@ let thetaE = 0;
 const PROTONS_ANGLE_INCREMENT = 0.04;
 const ELETRONS_ANGLE_INCREMENT = -0.04;
 
-let hide = false;
+let hidden = false;
 
 function animate(time)
 {
@@ -58,7 +58,7 @@ function animate(time)
     gl.uniform1f(wP, TABLE_WIDTH);
     gl.uniform1f(hP, table_height);
 
-    if (!hide) {
+    if (!hidden) {
         const uTheta =  gl.getUniformLocation(chargesProgram, "uTheta");
         thetaP += PROTONS_ANGLE_INCREMENT;
         gl.uniform1f(uTheta, thetaP);
@@ -127,10 +127,10 @@ function setup(shaders)
 
     window.addEventListener('keydown', function(event) {
         if (event.key === " ") {
-            if(hide)
-                hide = false;
+            if(hidden)
+                hidden = false;
             else
-                hide = true;
+                hidden = true;
         }
     })
 
