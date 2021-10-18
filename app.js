@@ -5,16 +5,18 @@ import * as MV from '../../libs/MV.js';
 let gl;
 let canvas;
 let program;
-let program1;
+let protronsProgram;
+let eletronsProgram;
 
 
 const table_width = 3.0;
 let table_height;
 const grid_spacing = 0.05;
-const points = [];
+const grid = [];
 
-const position = [];
+const protons = [];
 const MAX_CHARGES = 200;
+const eletrons = [];
 let theta = 0;
 
 
@@ -35,17 +37,48 @@ function animate(time)
     let color = gl.getUniformLocation(program, "color");
 
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
-    gl.drawArrays(gl.POINTS, 0, points.length);
+    gl.drawArrays(gl.POINTS, 0, grid.length);
 
 
-    gl.useProgram(program1);
 
-    const color1 = gl.getUniformLocation(program1, "color"); 
+    gl.useProgram(protronsProgram);
+
+    const color2 = gl.getUniformLocation(protronsProgram, "color"); 
+    gl.uniform4f(color2, 0.0, 0.0, 1.0, 1.0); // green
+
+    const w2 = gl.getUniformLocation(protronsProgram, "table_width");
+    const h2 = gl.getUniformLocation(protronsProgram, "table_height");
+    gl.uniform1f(w2, table_width);
+    gl.uniform1f(h2, table_height);
+
+    const uTheta1 =  gl.getUniformLocation(protronsProgram, "uTheta");
+    theta += 0.1;
+    gl.uniform1f(uTheta1, theta);
+
+    gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
+
+
+
+
+
+    gl.useProgram(eletronsProgram);
+
+    const color1 = gl.getUniformLocation(eletronsProgram, "color"); 
     gl.uniform4f(color1, 0.0, 1.0, 0.0, 1.0); // green
-    const uTheta =  gl.getUniformLocation(program1, "uTheta");
+
+    const w1 = gl.getUniformLocation(eletronsProgram, "table_width");
+    const h1 = gl.getUniformLocation(eletronsProgram, "table_height");
+    gl.uniform1f(w1, table_width);
+    gl.uniform1f(h1, table_height);
+
+    const uTheta =  gl.getUniformLocation(eletronsProgram, "uTheta");
     theta += 0.1;
     gl.uniform1f(uTheta, theta);
-    gl.drawArrays(gl.POINTS, points.length, position.length);
+
+    gl.drawArrays(gl.POINTS, grid.length, protons.length);
+
+
+
 
 }
 
@@ -61,7 +94,8 @@ function setup(shaders)
 
 
     program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
-    program1 = UTILS.buildProgramFromSources(gl, shaders["proton.vert"], shaders["shader1.frag"]);
+    protronsProgram = UTILS.buildProgramFromSources(gl, shaders["proton.vert"], shaders["shader1.frag"]);
+    eletronsProgram = UTILS.buildProgramFromSources(gl, shaders["eletron.vert"], shaders["shader1.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -70,22 +104,27 @@ function setup(shaders)
 
     for(let x = -table_width/2; x <= table_width/2; x += grid_spacing) {
         for(let y = -table_height/2; y <= table_height/2; y += grid_spacing) {
-            points.push(MV.vec2(x, y));
+            grid.push(MV.vec2(x, y));
         }
     }
 
     const aBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, aBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, (points.length + MAX_CHARGES) * MV.sizeof['vec2'], gl.STATIC_DRAW);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, MV.flatten(points));
+    gl.bufferData(gl.ARRAY_BUFFER, (grid.length + MAX_CHARGES) * MV.sizeof['vec2'], gl.STATIC_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, MV.flatten(grid));
 
     const vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    const vPosition1 = gl.getAttribLocation(program1, "vPosition");
-    gl.vertexAttribPointer(vPosition1, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition1);
+    const vPositionP = gl.getAttribLocation(protronsProgram, "vPosition");
+    gl.vertexAttribPointer(vPositionP, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPositionP);
+
+    const vPositionE = gl.getAttribLocation(eletronsProgram, "vPosition");
+    gl.vertexAttribPointer(vPositionE, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPositionE);
+
 
 
     window.addEventListener("resize", function (event) {
@@ -93,7 +132,12 @@ function setup(shaders)
     });
 
     canvas.addEventListener("click", function(event) {
-        addProtons(event);
+        if (event.shiftKey) {
+            addEletrons(event);
+        }
+        else {
+            addProtons(event);
+        }
     });
 
 
@@ -121,11 +165,27 @@ function addProtons(event){
     let table_x = (x - canvas.width/2) / canvas.width * table_width;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
 
-    position.push(MV.vec2(table_x, table_y));
+    protons.push(MV.vec2(table_x, table_y));
 
-    gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*points.length, MV.flatten(position));
+    gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*grid.length, MV.flatten(protons));
 }
 
 
-let allShaders = ["shader1.vert", "proton.vert", "shader1.frag"];
+
+function addEletrons(event){
+    const x = event.offsetX;
+    const y = event.offsetY;
+
+    console.log("Click at (" + x + ", " + y + ") - SHIFT");
+
+    let table_x = (x - canvas.width/2) / canvas.width * table_width;
+    let table_y = -(y - canvas.height/2) / canvas.height * table_height;
+
+    eletrons.push(MV.vec2(table_x, table_y));
+
+    gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*(grid.length + 100) , MV.flatten(eletrons));
+}
+
+
+let allShaders = ["shader1.vert", "proton.vert", "eletron.vert", "shader1.frag"];
 UTILS.loadShadersFromURLS(allShaders).then(s => setup(s));
