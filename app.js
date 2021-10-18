@@ -6,8 +6,7 @@ import * as MV from '../../libs/MV.js';
 let gl;
 let canvas;
 let program;
-let protonsProgram;
-let eletronsProgram;
+let chargesProgram;
 
 const TABLE_WIDTH = 3.0;
 let table_height;
@@ -46,37 +45,30 @@ function animate(time)
 
 
 
-    gl.useProgram(protonsProgram);
+    gl.useProgram(chargesProgram);
 
-    const colorP = gl.getUniformLocation(protonsProgram, "color"); 
-    gl.uniform4f(colorP, 0.0, 1.0, 0.0, 1.0); // green: protons
+    // Desenhar protoes
 
-    const wP = gl.getUniformLocation(protonsProgram, "table_width");
-    const hP = gl.getUniformLocation(protonsProgram, "table_height");
-    gl.uniform1f(wP, TABLE_WIDTH);
-    gl.uniform1f(hP, table_height);
+    const cColor = gl.getUniformLocation(chargesProgram, "color"); 
+    gl.uniform4f(cColor, 0.0, 1.0, 0.0, 1.0); // green: protons
 
-    const uThetaP =  gl.getUniformLocation(protonsProgram, "uTheta");
+    const wC = gl.getUniformLocation(chargesProgram, "table_width");
+    const hC = gl.getUniformLocation(chargesProgram, "table_height");
+    gl.uniform1f(wC, TABLE_WIDTH);
+    gl.uniform1f(hC, table_height);
+
+    const uThetaP =  gl.getUniformLocation(chargesProgram, "uTheta");
     thetaP += PROTONS_ANGLE_INCREMENT;
     gl.uniform1f(uThetaP, thetaP);
 
     gl.drawArrays(gl.POINTS, grid.length, protons.length);
 
+    // Desenhar eletroes
 
+    gl.uniform4f(cColor, 1.0, 0.0, 0.0, 1.0); // red: eletrons
 
-    gl.useProgram(eletronsProgram);
-
-    const colorE = gl.getUniformLocation(eletronsProgram, "color"); 
-    gl.uniform4f(colorE, 1.0, 0.0, 0.0, 1.0); // red: eletrons
-
-    const wE = gl.getUniformLocation(eletronsProgram, "table_width");
-    const hE = gl.getUniformLocation(eletronsProgram, "table_height");
-    gl.uniform1f(wE, TABLE_WIDTH);
-    gl.uniform1f(hE, table_height);
-
-    const uTheta =  gl.getUniformLocation(eletronsProgram, "uTheta");
     thetaE += ELETRONS_ANGLE_INCREMENT;
-    gl.uniform1f(uTheta, thetaE);
+    gl.uniform1f(uThetaP, thetaE);
 
     gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
 }
@@ -93,8 +85,7 @@ function setup(shaders)
 
 
     program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
-    protonsProgram = UTILS.buildProgramFromSources(gl, shaders["proton.vert"], shaders["shader1.frag"]);
-    eletronsProgram = UTILS.buildProgramFromSources(gl, shaders["eletron.vert"], shaders["shader1.frag"]);
+    chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["shader1.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -116,11 +107,11 @@ function setup(shaders)
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    const vPositionP = gl.getAttribLocation(protonsProgram, "vPosition");
+    const vPositionP = gl.getAttribLocation(chargesProgram, "vPosition");
     gl.vertexAttribPointer(vPositionP, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPositionP);
 
-    const vPositionE = gl.getAttribLocation(eletronsProgram, "vPosition");
+    const vPositionE = gl.getAttribLocation(chargesProgram, "vPosition");
     gl.vertexAttribPointer(vPositionE, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPositionE);
 
@@ -184,5 +175,5 @@ function addEletrons(event){
 }
 
 
-let allShaders = ["shader1.vert", "proton.vert", "eletron.vert", "shader1.frag"];
+let allShaders = ["shader1.vert", "charge.vert", "shader1.frag"];
 UTILS.loadShadersFromURLS(allShaders).then(s => setup(s));
