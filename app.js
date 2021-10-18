@@ -49,7 +49,7 @@ function animate(time)
     gl.useProgram(protonsProgram);
 
     const colorP = gl.getUniformLocation(protonsProgram, "color"); 
-    gl.uniform4f(colorP, 0.0, 0.0, 1.0, 1.0); // blue
+    gl.uniform4f(colorP, 0.0, 1.0, 0.0, 1.0); // green: protons
 
     const wP = gl.getUniformLocation(protonsProgram, "table_width");
     const hP = gl.getUniformLocation(protonsProgram, "table_height");
@@ -60,14 +60,14 @@ function animate(time)
     thetaP += PROTONS_ANGLE_INCREMENT;
     gl.uniform1f(uThetaP, thetaP);
 
-    gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
+    gl.drawArrays(gl.POINTS, grid.length, protons.length);
 
 
 
     gl.useProgram(eletronsProgram);
 
     const colorE = gl.getUniformLocation(eletronsProgram, "color"); 
-    gl.uniform4f(colorE, 0.0, 1.0, 0.0, 1.0); // green
+    gl.uniform4f(colorE, 1.0, 0.0, 0.0, 1.0); // red: eletrons
 
     const wE = gl.getUniformLocation(eletronsProgram, "table_width");
     const hE = gl.getUniformLocation(eletronsProgram, "table_height");
@@ -78,7 +78,7 @@ function animate(time)
     thetaE += ELETRONS_ANGLE_INCREMENT;
     gl.uniform1f(uTheta, thetaE);
 
-    gl.drawArrays(gl.POINTS, grid.length, protons.length);
+    gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
 }
 
 
