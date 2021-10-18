@@ -14,8 +14,9 @@ let table_height;
 const GRID_SPACING = 0.05;
 let grid = [];
 
-let protons = [];
 const MAX_CHARGES = 200;
+const PROTON_LIMIT = 100;
+let protons = [];
 let eletrons = [];
 
 let thetaP = 0;
@@ -67,7 +68,7 @@ function animate(time)
     thetaE += ELETRONS_ANGLE_INCREMENT;
     gl.uniform1f(uTheta, thetaE);
 
-    gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
+    gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
 }
 
 
