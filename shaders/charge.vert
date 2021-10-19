@@ -2,8 +2,6 @@ attribute vec4 vPosition;
 
 uniform float table_width;
 uniform float table_height;
-uniform float uTheta;
-
 
 void main()
 {
