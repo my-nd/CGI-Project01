@@ -31,32 +31,17 @@ function animate(time)
     window.requestAnimationFrame(animate);    
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-
-
     gl.useProgram(program);
 
-    const w = gl.getUniformLocation(program, "table_width");
-    const h = gl.getUniformLocation(program, "table_height");
-    
-    gl.uniform1f(w, TABLE_WIDTH);
-    gl.uniform1f(h, table_height);
-
     let color = gl.getUniformLocation(program, "color");
-
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
     gl.drawArrays(gl.POINTS, 0, grid.length);
 
 
-
     gl.useProgram(chargesProgram);
-
     const colorC = gl.getUniformLocation(chargesProgram, "color"); 
     gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
 
-    const wP = gl.getUniformLocation(chargesProgram, "table_width");
-    const hP = gl.getUniformLocation(chargesProgram, "table_height");
-    gl.uniform1f(wP, TABLE_WIDTH);
-    gl.uniform1f(hP, table_height);
 
     if (!hidden) {
         const uTheta =  gl.getUniformLocation(chargesProgram, "uTheta");
@@ -66,14 +51,28 @@ function animate(time)
         gl.drawArrays(gl.POINTS, grid.length, protons.length);
     
     
-        gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negatie charges
+        gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges
     
         thetaE += ELETRONS_ANGLE_INCREMENT;
         gl.uniform1f(uTheta, thetaE);
     
         gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
+
+
+
+        for(let i = 0; i < protons.length; i++){
+            let oldX = protons[i][0];
+            protons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * protons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * protons[i][1];
+            protons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * protons[i][1];
+        }
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*grid.length, MV.flatten(protons));
+
+
+
     }
 }
+
 
 
 
@@ -134,6 +133,8 @@ function setup(shaders)
         }
     })
 
+    resizeCanvas();
+
 
     window.requestAnimationFrame(animate);
 
@@ -144,7 +145,20 @@ function resizeCanvas(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;  
     gl.viewport(0, 0, canvas.width, canvas.height);
-    table_height = TABLE_WIDTH / (canvas.width/canvas.height);    
+    table_height = TABLE_WIDTH / (canvas.width/canvas.height); 
+    
+    gl.useProgram(program);
+    const w = gl.getUniformLocation(program, "table_width");
+    const h = gl.getUniformLocation(program, "table_height");
+    gl.uniform1f(w, TABLE_WIDTH);
+    gl.uniform1f(h, table_height);
+
+
+    gl.useProgram(chargesProgram);
+    const wP = gl.getUniformLocation(chargesProgram, "table_width");
+    const hP = gl.getUniformLocation(chargesProgram, "table_height");
+    gl.uniform1f(wP, TABLE_WIDTH);
+    gl.uniform1f(hP, table_height);
 }
 
 
