@@ -21,8 +21,10 @@ let eletrons = [];
 
 let thetaP = 0;
 let thetaE = 0;
-const PROTONS_ANGLE_INCREMENT = 0.04;
-const ELETRONS_ANGLE_INCREMENT = -0.04;
+const PROTONS_ANGLE_INCREMENT = 0.02;
+const ELETRONS_ANGLE_INCREMENT = -0.02;
+
+const COULOUMB_CONSTANT = 8.99 * Math.pow(10, 9);
 
 let hidden = false;
 
@@ -44,34 +46,53 @@ function animate(time)
     let color = gl.getUniformLocation(program, "color");
 
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
-    gl.drawArrays(gl.POINTS, 0, grid.length);
+    //gl.drawArrays(gl.POINTS, 0, grid.length);
 
-
-
-    gl.useProgram(chargesProgram);
-
-    const colorC = gl.getUniformLocation(chargesProgram, "color"); 
-    gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
-
-    const wP = gl.getUniformLocation(chargesProgram, "table_width");
-    const hP = gl.getUniformLocation(chargesProgram, "table_height");
-    gl.uniform1f(wP, TABLE_WIDTH);
-    gl.uniform1f(hP, table_height);
 
     if (!hidden) {
+        gl.useProgram(chargesProgram);
+
+        const colorC = gl.getUniformLocation(chargesProgram, "color"); 
+        gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
+    
+        const wP = gl.getUniformLocation(chargesProgram, "table_width");
+        const hP = gl.getUniformLocation(chargesProgram, "table_height");
+        gl.uniform1f(wP, TABLE_WIDTH);
+        gl.uniform1f(hP, table_height);
+
         const uTheta =  gl.getUniformLocation(chargesProgram, "uTheta");
         thetaP += PROTONS_ANGLE_INCREMENT;
         gl.uniform1f(uTheta, thetaP);
+
+        for(let i = 0; i < protons.length; i++) {
+            let oldX = protons[i][0];
+            protons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * protons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * protons[i][1];
+            protons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * protons[i][1];
+        }
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*grid.length, MV.flatten(protons));
+        
     
         gl.drawArrays(gl.POINTS, grid.length, protons.length);
     
     
-        gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negatie charges
+        gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges
     
         thetaE += ELETRONS_ANGLE_INCREMENT;
         gl.uniform1f(uTheta, thetaE);
+
+        for(let i = 0; i < eletrons.length; i++) {
+            let oldX = eletrons[i][0];
+            eletrons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][0] + Math.sin(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
+            eletrons[i][1] = -Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
+        }
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + 100) , MV.flatten(eletrons));
     
         gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
+
+        
+
     }
 }
 
@@ -134,6 +155,7 @@ function setup(shaders)
         }
     })
 
+    
 
     window.requestAnimationFrame(animate);
 
