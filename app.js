@@ -6,8 +6,7 @@ import * as MV from '../../libs/MV.js';
 let gl;
 let canvas;
 let program;
-let protonsProgram;
-let eletronsProgram;
+let chargesProgram;
 
 const TABLE_WIDTH = 3.0;
 let table_height;
@@ -15,14 +14,19 @@ let table_height;
 const GRID_SPACING = 0.05;
 let grid = [];
 
-let protons = [];
 const MAX_CHARGES = 200;
+const PROTON_LIMIT = 100;
+let protons = [];
 let eletrons = [];
 
 let thetaP = 0;
-const PROTONS_ANGLE_INCREMENT = 0.04;
 let thetaE = 0;
-const ELETRONS_ANGLE_INCREMENT = -0.04;
+const PROTONS_ANGLE_INCREMENT = 0.02;
+const ELETRONS_ANGLE_INCREMENT = -0.02;
+
+const COULOUMB_CONSTANT = 8.99 * Math.pow(10, 9);
+
+let hidden = false;
 
 function animate(time)
 {
@@ -42,43 +46,54 @@ function animate(time)
     let color = gl.getUniformLocation(program, "color");
 
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
-    gl.drawArrays(gl.POINTS, 0, grid.length);
+    //gl.drawArrays(gl.POINTS, 0, grid.length);
 
 
+    if (!hidden) {
+        gl.useProgram(chargesProgram);
 
-    gl.useProgram(protonsProgram);
+        const colorC = gl.getUniformLocation(chargesProgram, "color"); 
+        gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
+    
+        const wP = gl.getUniformLocation(chargesProgram, "table_width");
+        const hP = gl.getUniformLocation(chargesProgram, "table_height");
+        gl.uniform1f(wP, TABLE_WIDTH);
+        gl.uniform1f(hP, table_height);
 
-    const colorP = gl.getUniformLocation(protonsProgram, "color"); 
-    gl.uniform4f(colorP, 0.0, 0.0, 1.0, 1.0); // blue
+        const uTheta =  gl.getUniformLocation(chargesProgram, "uTheta");
+        thetaP += PROTONS_ANGLE_INCREMENT;
+        gl.uniform1f(uTheta, thetaP);
 
-    const wP = gl.getUniformLocation(protonsProgram, "table_width");
-    const hP = gl.getUniformLocation(protonsProgram, "table_height");
-    gl.uniform1f(wP, TABLE_WIDTH);
-    gl.uniform1f(hP, table_height);
+        for(let i = 0; i < protons.length; i++) {
+            let oldX = protons[i][0];
+            protons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * protons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * protons[i][1];
+            protons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * protons[i][1];
+        }
 
-    const uThetaP =  gl.getUniformLocation(protonsProgram, "uTheta");
-    thetaP += PROTONS_ANGLE_INCREMENT;
-    gl.uniform1f(uThetaP, thetaP);
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2']*grid.length, MV.flatten(protons));
+        
+    
+        gl.drawArrays(gl.POINTS, grid.length, protons.length);
+    
+    
+        gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges
+    
+        thetaE += ELETRONS_ANGLE_INCREMENT;
+        gl.uniform1f(uTheta, thetaE);
 
-    gl.drawArrays(gl.POINTS, grid.length+100, eletrons.length);
+        for(let i = 0; i < eletrons.length; i++) {
+            let oldX = eletrons[i][0];
+            eletrons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][0] + Math.sin(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
+            eletrons[i][1] = -Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
+        }
 
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + 100) , MV.flatten(eletrons));
+    
+        gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
 
+        
 
-    gl.useProgram(eletronsProgram);
-
-    const colorE = gl.getUniformLocation(eletronsProgram, "color"); 
-    gl.uniform4f(colorE, 0.0, 1.0, 0.0, 1.0); // green
-
-    const wE = gl.getUniformLocation(eletronsProgram, "table_width");
-    const hE = gl.getUniformLocation(eletronsProgram, "table_height");
-    gl.uniform1f(wE, TABLE_WIDTH);
-    gl.uniform1f(hE, table_height);
-
-    const uTheta =  gl.getUniformLocation(eletronsProgram, "uTheta");
-    thetaE += ELETRONS_ANGLE_INCREMENT;
-    gl.uniform1f(uTheta, thetaE);
-
-    gl.drawArrays(gl.POINTS, grid.length, protons.length);
+    }
 }
 
 
@@ -93,8 +108,7 @@ function setup(shaders)
 
 
     program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
-    protonsProgram = UTILS.buildProgramFromSources(gl, shaders["proton.vert"], shaders["shader1.frag"]);
-    eletronsProgram = UTILS.buildProgramFromSources(gl, shaders["eletron.vert"], shaders["shader1.frag"]);
+    chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["shader1.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -116,14 +130,9 @@ function setup(shaders)
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    const vPositionP = gl.getAttribLocation(protonsProgram, "vPosition");
-    gl.vertexAttribPointer(vPositionP, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPositionP);
-
-    const vPositionE = gl.getAttribLocation(eletronsProgram, "vPosition");
-    gl.vertexAttribPointer(vPositionE, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPositionE);
-
+    const vPositionC = gl.getAttribLocation(chargesProgram, "vPosition");
+    gl.vertexAttribPointer(vPositionC, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPositionC);
 
 
     window.addEventListener("resize", function (event) {
@@ -137,6 +146,16 @@ function setup(shaders)
             addProtons(event);
     });
 
+    window.addEventListener('keydown', function(event) {
+        if (event.key === " ") {
+            if(hidden)
+                hidden = false;
+            else
+                hidden = true;
+        }
+    })
+
+    
 
     window.requestAnimationFrame(animate);
 
@@ -184,5 +203,5 @@ function addEletrons(event){
 }
 
 
-let allShaders = ["shader1.vert", "proton.vert", "eletron.vert", "shader1.frag"];
+let allShaders = ["shader1.vert", "charge.vert", "shader1.frag"];
 UTILS.loadShadersFromURLS(allShaders).then(s => setup(s));
