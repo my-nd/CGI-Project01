@@ -1,9 +1,11 @@
 attribute vec4 vPosition;
+attribute float isMoving;
 
 uniform float table_width;
 uniform float table_height;
 
-const int MAX_CHARGES=100;
+
+const int MAX_CHARGES = 100;
 uniform vec2 eletronPos[MAX_CHARGES];
 uniform vec2 protonPos[MAX_CHARGES];
 
@@ -21,21 +23,42 @@ float calculateDistance(vec2 pos){
 
 
 void calculate(){
-    for(int i = 0; i < ; i++){
-        float radius = calculateDistance(protonPos[i]);
-        float e = COULOUMB_CONSTANT * charge / pow(radius, 2);
+    float radius, e;
+    vec2 curr;
 
-        vec2 curr = vec2( e * (protonPos[i][0] - vPosition.x)/radius, e * (protonPos[i][1] - vPosition.y) / radius);
+    for(int i = 0; i < MAX_CHARGES; i++){
+        //eletronPos[i] != NULL
+        radius = calculateDistance(protonPos[i]);
+        e = COULOUMB_CONSTANT * charge / radius*radius;
+
+        curr = vec2( e * (protonPos[i][0] - vPosition.x)/radius, e * (protonPos[i][1] - vPosition.y) / radius);
         total += curr;
     }
-    
+    for(int i = 0; i < MAX_CHARGES;i ++){
+        radius = calculateDistance(protonPos[i]);
+        e = COULOUMB_CONSTANT * charge / radius*radius;
+
+        curr = vec2( e * (eletronPos[i][0] - vPosition.x)/radius, e * (eletronPos[i][1] - vPosition.y) / radius);
+        total -= curr;
+    }
 }
 
 
 void main()
 {
-    gl_PointSize = 4.0;
-    gl_Position = vPosition;
-    gl_Position.x = gl_Position.x / (table_width/2.0);
-    gl_Position.y = gl_Position.y / (table_height/2.0);    
+
+    if(isMoving == 1.0){
+        calculate();
+        gl_PointSize = 4.0;
+        gl_Position.x = (vPosition.x + total.x)  / (table_width/2.0);
+        gl_Position.y = (vPosition.y + total.y) / (table_height/2.0);
+        gl_Position.z = 0.0;
+        gl_Position.w = 1.0; 
+    }else {
+        gl_PointSize = 4.0;
+        gl_Position = vPosition;
+        gl_Position.x = gl_Position.x / (table_width/2.0);
+        gl_Position.y = gl_Position.y / (table_height/2.0); 
+    }
+    
 }

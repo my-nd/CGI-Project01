@@ -13,6 +13,7 @@ let table_height;
 
 const GRID_SPACING = 0.05;
 let grid = [];
+let isMoving = [];
 
 const MAX_CHARGES = 200;
 let protons = [];
@@ -41,9 +42,10 @@ function animate(time)
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
 
 
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * grid.length, MV.flatten(protons));
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + 100) , MV.flatten(eletrons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, (MV.sizeof['vec2']+4) * grid.length*2, MV.flatten(protons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + MAX_CHARGES/2) + grid.length*4 , MV.flatten(eletrons));
 
+        gl.useProgram(program);
         for(let i=0; i<protons.length; i++) {           
             const protonPos = gl.getUniformLocation(program, "protonPos[" + i + "]");
             gl.uniform2fv(protonPos, MV.flatten(protons[i]));
@@ -53,23 +55,14 @@ function animate(time)
             const eletronPos = gl.getUniformLocation(program, "eletronPos[" + i + "]");
             gl.uniform2fv(eletronPos, MV.flatten(eletrons[i]));
         }
+    
 
-        gl.drawArrays(gl.POINTS, grid.length, protons.length);
+        gl.useProgram(chargesProgram);
+        gl.drawArrays(gl.POINTS, grid.length*2, protons.length);
         gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges    
-        gl.drawArrays(gl.POINTS, grid.length + MAX_CHARGES / 2, eletrons.length);
+        gl.drawArrays(gl.POINTS, grid.length*2 + MAX_CHARGES / 2, eletrons.length);
 
-
-        for(let i = 0; i < protons.length; i++){
-            let oldX = protons[i][0];
-            protons[i][0] = Math.cos(PROTONS_ANGLE_INCREMENT) * protons[i][0] - Math.sin(PROTONS_ANGLE_INCREMENT) * protons[i][1];
-            protons[i][1] = Math.sin(PROTONS_ANGLE_INCREMENT) * oldX + Math.cos(PROTONS_ANGLE_INCREMENT) * protons[i][1];
-        }
-
-        for(let i = 0; i < eletrons.length; i++){
-            let oldX = eletrons[i][0];
-            eletrons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
-            eletrons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
-        }
+        updateChargesPosition();
     }
 }
 
@@ -85,7 +78,7 @@ function setup(shaders)
     canvas.height = window.innerHeight; 
 
 
-    program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
+    program = UTILS.buildProgramFromSources(gl, shaders["shader2.vert"], shaders["shader1.frag"]);
     chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["shader1.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -96,17 +89,34 @@ function setup(shaders)
     for(let x = -TABLE_WIDTH/2; x <= TABLE_WIDTH/2; x += GRID_SPACING) {
         for(let y = -table_height/2; y <= table_height/2; y += GRID_SPACING) {
             grid.push(MV.vec2(x, y));
+            grid.push(MV.vec2(x, y));
         }
     }
 
+    for(let i = 0; i < grid.length; i++)
+        isMoving[i] = (i % 2 == 0)? 0.0 : 1.0;
+
+
+
     const aBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, aBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, (grid.length + MAX_CHARGES) * MV.sizeof['vec2'], gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, (grid.length + MAX_CHARGES) * MV.sizeof['vec2'] + grid.length*4, gl.STATIC_DRAW);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, MV.flatten(grid));
+    gl.bufferSubData(gl.ARRAY_BUFFER, grid.length*MV.sizeof['vec2'], MV.flatten(isMoving));
+
+    
 
     const vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
+
+
+    const vIsMoving = gl.getAttribLocation(program, "isMoving");
+    gl.vertexAttribPointer(vIsMoving, 1, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vIsMoving);
+
+
+
 
     const vPositionC = gl.getAttribLocation(chargesProgram, "vPosition");
     gl.vertexAttribPointer(vPositionC, 2, gl.FLOAT, false, 0, 0);
@@ -127,7 +137,6 @@ function setup(shaders)
     })
 
     resizeCanvas();
-
 
     window.requestAnimationFrame(animate);
 
@@ -183,5 +192,20 @@ function addEletrons(event){
  }
 
 
-let allShaders = ["shader1.vert", "charge.vert", "shader1.frag"];
+function updateChargesPosition(){
+    for(let i = 0; i < protons.length; i++){
+        let oldX = protons[i][0];
+        protons[i][0] = Math.cos(PROTONS_ANGLE_INCREMENT) * protons[i][0] - Math.sin(PROTONS_ANGLE_INCREMENT) * protons[i][1];
+        protons[i][1] = Math.sin(PROTONS_ANGLE_INCREMENT) * oldX + Math.cos(PROTONS_ANGLE_INCREMENT) * protons[i][1];
+    }
+
+    for(let i = 0; i < eletrons.length; i++){
+        let oldX = eletrons[i][0];
+        eletrons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
+        eletrons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
+    }
+}
+
+
+let allShaders = ["charge.vert", "shader2.vert", "shader1.frag"];
 UTILS.loadShadersFromURLS(allShaders).then(s => setup(s));
