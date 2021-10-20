@@ -15,7 +15,6 @@ const GRID_SPACING = 0.05;
 let grid = [];
 
 const MAX_CHARGES = 200;
-const PROTON_LIMIT = 100;
 let protons = [];
 let eletrons = [];
 
@@ -33,8 +32,6 @@ function animate(time)
     let color = gl.getUniformLocation(program, "color");
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
     gl.drawArrays(gl.POINTS, 0, grid.length);
-
-
     
 
     if (!hidden) {    
@@ -43,10 +40,23 @@ function animate(time)
         const colorC = gl.getUniformLocation(chargesProgram, "color"); 
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
 
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * grid.length, MV.flatten(protons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + 100) , MV.flatten(eletrons));
+
+        for(let i=0; i<protons.length; i++) {           
+            const protonPos = gl.getUniformLocation(program, "protonPos[" + i + "]");
+            gl.uniform2fv(protonPos, MV.flatten(protons[i]));
+        }
+
+        for(let i=0; i<eletrons.length; i++) {           
+            const eletronPos = gl.getUniformLocation(program, "eletronPos[" + i + "]");
+            gl.uniform2fv(eletronPos, MV.flatten(eletrons[i]));
+        }
+
         gl.drawArrays(gl.POINTS, grid.length, protons.length);
         gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges    
-        gl.drawArrays(gl.POINTS, grid.length+PROTON_LIMIT, eletrons.length);
-
+        gl.drawArrays(gl.POINTS, grid.length + MAX_CHARGES / 2, eletrons.length);
 
 
         for(let i = 0; i < protons.length; i++){
@@ -60,10 +70,6 @@ function animate(time)
             eletrons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
             eletrons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
         }
-
-
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * grid.length, MV.flatten(protons));
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + 100) , MV.flatten(eletrons));
     }
 }
 
@@ -112,19 +118,12 @@ function setup(shaders)
     });
 
     canvas.addEventListener("click", function(event) {
-        if (event.shiftKey) 
-            addEletrons(event);
-        else 
-            addProtons(event);
+        (event.shiftKey)? addEletrons(event) : addProtons(event);
     });
 
     window.addEventListener('keydown', function(event) {
-        if (event.key === " ") {
-            if(hidden)
-                hidden = false;
-            else
-                hidden = true;
-        }
+        if (event.key === " ")
+            (hidden)? hidden = false : hidden = true;                
     })
 
     resizeCanvas();
