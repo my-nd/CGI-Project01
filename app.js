@@ -32,7 +32,7 @@ function animate(time)
     gl.useProgram(program);
     let color = gl.getUniformLocation(program, "color");
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
-    gl.drawArrays(gl.POINTS, 0, grid.length);
+    gl.drawArrays(gl.LINES, 0, grid.length);
     
 
     if (!hidden) {    
@@ -42,8 +42,8 @@ function animate(time)
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
 
 
-        gl.bufferSubData(gl.ARRAY_BUFFER, (MV.sizeof['vec2']+4) * grid.length*2, MV.flatten(protons));
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length + MAX_CHARGES/2) + grid.length*4 , MV.flatten(eletrons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, (MV.sizeof['vec2']) * grid.length*2, MV.flatten(protons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length*2 + MAX_CHARGES/2), MV.flatten(eletrons));
 
         gl.useProgram(program);
         for(let i=0; i<protons.length; i++) {           
@@ -55,6 +55,7 @@ function animate(time)
             const eletronPos = gl.getUniformLocation(program, "eletronPos[" + i + "]");
             gl.uniform2fv(eletronPos, MV.flatten(eletrons[i]));
         }
+
     
 
         gl.useProgram(chargesProgram);
@@ -89,18 +90,20 @@ function setup(shaders)
     for(let x = -TABLE_WIDTH/2; x <= TABLE_WIDTH/2; x += GRID_SPACING) {
         for(let y = -table_height/2; y <= table_height/2; y += GRID_SPACING) {
             grid.push(MV.vec2(x, y));
+            isMoving.push(MV.vec2(0.0, 0.0));
             grid.push(MV.vec2(x, y));
+            isMoving.push(MV.vec2(1.0, 0.0));
         }
     }
 
-    for(let i = 0; i < grid.length; i++)
-        isMoving[i] = (i % 2 == 0)? 0.0 : 1.0;
+    /*for(let i = 0; i < grid.length; i++)
+        isMoving[i] = (i % 2 == 0)? 0.0 : 1.0;*/
 
 
 
     const aBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, aBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, (grid.length + MAX_CHARGES) * MV.sizeof['vec2'] + grid.length*4, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, (grid.length*2 + MAX_CHARGES) * MV.sizeof['vec2'], gl.STATIC_DRAW);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, MV.flatten(grid));
     gl.bufferSubData(gl.ARRAY_BUFFER, grid.length*MV.sizeof['vec2'], MV.flatten(isMoving));
 
@@ -112,10 +115,8 @@ function setup(shaders)
 
 
     const vIsMoving = gl.getAttribLocation(program, "isMoving");
-    gl.vertexAttribPointer(vIsMoving, 1, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(vIsMoving, 2, gl.FLOAT, false, 0, grid.length*MV.sizeof['vec2']);
     gl.enableVertexAttribArray(vIsMoving);
-
-
 
 
     const vPositionC = gl.getAttribLocation(chargesProgram, "vPosition");
