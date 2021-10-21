@@ -19,8 +19,8 @@ const MAX_CHARGES = 200;
 let protons = [];
 let eletrons = [];
 
-const PROTONS_ANGLE_INCREMENT = 0.04;
-const ELETRONS_ANGLE_INCREMENT = -0.04;
+const PROTONS_ANGLE_INCREMENT = 0.005;
+const ELETRONS_ANGLE_INCREMENT = -0.005;
 
 let hidden = false;
 
@@ -30,13 +30,21 @@ function animate(time)
     gl.clear(gl.COLOR_BUFFER_BIT);
     
     gl.useProgram(program);
-    let color = gl.getUniformLocation(program, "fColor");
-    gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
+
+    const isEletronsEmpty = gl.getUniformLocation(program, "isEletronPosEmpty");
+    const isProtonsEmpty = gl.getUniformLocation(program, "isProtonPosEmpty");
+
+    if (protons.length == 0)
+        gl.uniform1f(isProtonsEmpty, 1.0);
+    else gl.uniform1f(isProtonsEmpty, 0.0);
+
+    if (eletrons.length == 0)
+        gl.uniform1f(isEletronsEmpty, 1.0);
+    else gl.uniform1f(isEletronsEmpty, 0.0);
+
+    gl.drawArrays(gl.LINES, 0, grid.length);
 
     if (!hidden) {    
-
-        if(protons.length > 0 || eletrons.length > 0)
-        gl.drawArrays(gl.LINES, 0, grid.length);
 
         gl.useProgram(chargesProgram);
         const colorC = gl.getUniformLocation(chargesProgram, "fColor2"); 
@@ -81,7 +89,7 @@ function setup(shaders)
 
 
     program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
-    chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["shader2.frag"]);
+    chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["charge.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -207,5 +215,5 @@ function updateChargesPosition(){
 }
 
 
-let allShaders = ["charge.vert", "shader1.vert", "shader1.frag", "shader2.frag"];
+let allShaders = ["shader1.vert", "shader1.frag", "charge.vert", "charge.frag"];
 UTILS.loadShadersFromURLS(allShaders).then(s => setup(s));

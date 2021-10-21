@@ -4,10 +4,11 @@ attribute float isMoving;
 uniform float table_width;
 uniform float table_height;
 
-
 const int MAX_CHARGES = 100;
 uniform vec2 eletronPos[MAX_CHARGES];
 uniform vec2 protonPos[MAX_CHARGES];
+uniform float isProtonPosEmpty;
+uniform float isEletronPosEmpty;
 
 varying vec4 fColor; // necessário?
 
@@ -44,7 +45,6 @@ vec4 calculate(){
     vec4 curr;
     vec4 total = vec4(0.0, 0.0, 0.0, 1.0);
 
-
     for(int i = 0; i < MAX_CHARGES; i++){
         radiusP = distance(vec2(protonPos[i].x, protonPos[i].y), vec2(vPosition.x, vPosition.y));
         radiusE = distance(vec2(eletronPos[i].x, eletronPos[i].y), vec2(vPosition.x, vPosition.y));
@@ -65,12 +65,20 @@ vec4 calculate(){
 void main()
 {
     gl_PointSize = 4.0;
-    if(isMoving == 0.0)
-        gl_Position = vPosition;
-    else {
-        gl_Position = vPosition + calculate();
+    if(isMoving == 0.0) {
+        gl_Position.x = vPosition.x / (table_width/2.0);
+        gl_Position.y = vPosition.y / (table_height/2.0);
+        gl_Position.z = 0.0;
+        gl_Position.w = 1.0;
     }
-        
+    else {
+        gl_Position.x = vPosition.x / (table_width/2.0) + calculate().x / (table_width/2.0);
+        gl_Position.y = vPosition.y / (table_height/2.0) + calculate().y / (table_height/2.0);
+        gl_Position.z = 0.0;
+        gl_Position.w = 1.0;
+    }
+    
+    fColor = colorize(vec2(gl_Position.x, gl_Position.y));   
 
     
 }
