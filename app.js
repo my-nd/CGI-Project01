@@ -28,18 +28,17 @@ function animate(time)
 {
     window.requestAnimationFrame(animate);    
     gl.clear(gl.COLOR_BUFFER_BIT);
-    
+
     gl.useProgram(program);
-    let color = gl.getUniformLocation(program, "fColor");
+    let color = gl.getUniformLocation(program, "color");
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
+    gl.drawArrays(gl.LINES, 0, grid.length);
+    
 
     if (!hidden) {    
 
-        if(protons.length > 0 || eletrons.length > 0)
-        gl.drawArrays(gl.LINES, 0, grid.length);
-
         gl.useProgram(chargesProgram);
-        const colorC = gl.getUniformLocation(chargesProgram, "fColor2"); 
+        const colorC = gl.getUniformLocation(chargesProgram, "color"); 
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
 
 
@@ -80,8 +79,8 @@ function setup(shaders)
     canvas.height = window.innerHeight; 
 
 
-    program = UTILS.buildProgramFromSources(gl, shaders["shader1.vert"], shaders["shader1.frag"]);
-    chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["shader2.frag"]);
+    program = UTILS.buildProgramFromSources(gl, shaders["shader2.vert"], shaders["shader1.frag"]);
+    chargesProgram = UTILS.buildProgramFromSources(gl, shaders["charge.vert"], shaders["shader1.frag"]);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -91,12 +90,14 @@ function setup(shaders)
     for(let x = -TABLE_WIDTH/2; x <= TABLE_WIDTH/2; x += GRID_SPACING) {
         for(let y = -table_height/2; y <= table_height/2; y += GRID_SPACING) {
             grid.push(MV.vec2(x, y));
+            isMoving.push(MV.vec2(0.0, 0.0));
             grid.push(MV.vec2(x, y));
+            isMoving.push(MV.vec2(1.0, 0.0));
         }
     }
 
-    for(let i = 0; i < grid.length; i++)
-        isMoving[i] = (i % 2 == 0)? 0.0 : 1.0;
+    /*for(let i = 0; i < grid.length; i++)
+        isMoving[i] = (i % 2 == 0)? 0.0 : 1.0;*/
 
 
 
@@ -114,7 +115,7 @@ function setup(shaders)
 
 
     const vIsMoving = gl.getAttribLocation(program, "isMoving");
-    gl.vertexAttribPointer(vIsMoving, 1, gl.FLOAT, false, 0, grid.length*MV.sizeof['vec2']);
+    gl.vertexAttribPointer(vIsMoving, 2, gl.FLOAT, false, 0, grid.length*MV.sizeof['vec2']);
     gl.enableVertexAttribArray(vIsMoving);
 
 
@@ -207,5 +208,5 @@ function updateChargesPosition(){
 }
 
 
-let allShaders = ["charge.vert", "shader1.vert", "shader1.frag", "shader2.frag"];
+let allShaders = ["charge.vert", "shader2.vert", "shader1.frag"];
 UTILS.loadShadersFromURLS(allShaders).then(s => setup(s));
