@@ -1,6 +1,6 @@
 precision highp float;
 
-uniform vec4 fColor;
+varying vec4 fColor;
 
 void main()
 {

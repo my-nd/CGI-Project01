@@ -9,7 +9,7 @@ const int MAX_CHARGES = 100;
 uniform vec2 eletronPos[MAX_CHARGES];
 uniform vec2 protonPos[MAX_CHARGES];
 
-varying vec4 fColor;
+varying vec4 fColor; // necessário?
 
 const float charge = 0.00000001;
 const float COULOUMB_CONSTANT = 8.99 * pow(10.0, 9.0);
@@ -69,7 +69,6 @@ void main()
         gl_Position = vPosition;
     else {
         gl_Position = vPosition + calculate();
-        fColor = colorize(vec2(gl_Position.x, gl_Position.y));
     }
         
 
