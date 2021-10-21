@@ -91,9 +91,9 @@ function setup(shaders)
     for(let x = -TABLE_WIDTH/2; x <= TABLE_WIDTH/2; x += GRID_SPACING) {
         for(let y = -table_height/2; y <= table_height/2; y += GRID_SPACING) {
             grid.push(MV.vec2(x, y));
-            isMoving.push(MV.vec2(0.0, 0.0));
+            isMoving.push(0.0);
             grid.push(MV.vec2(x, y));
-            isMoving.push(MV.vec2(1.0, 0.0));
+            isMoving.push(1.0);
         }
     }
 
@@ -116,7 +116,7 @@ function setup(shaders)
 
 
     const vIsMoving = gl.getAttribLocation(program, "isMoving");
-    gl.vertexAttribPointer(vIsMoving, 2, gl.FLOAT, false, 0, grid.length*MV.sizeof['vec2']);
+    gl.vertexAttribPointer(vIsMoving, 1, gl.FLOAT, false, 0, grid.length*MV.sizeof['vec2']);
     gl.enableVertexAttribArray(vIsMoving);
 
 

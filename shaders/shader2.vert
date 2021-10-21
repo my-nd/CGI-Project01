@@ -1,5 +1,5 @@
 attribute vec4 vPosition;
-attribute vec4 isMoving;
+attribute float isMoving;
 
 uniform float table_width;
 uniform float table_height;
@@ -40,7 +40,7 @@ vec4 calculate(){
 void main()
 {
     gl_PointSize = 4.0;
-    if(isMoving.x == 0.0)
+    if(isMoving == 0.0)
         gl_Position = vPosition;
     else
         gl_Position = vPosition + calculate();
