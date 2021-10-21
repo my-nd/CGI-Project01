@@ -28,14 +28,15 @@ function animate(time)
 {
     window.requestAnimationFrame(animate);    
     gl.clear(gl.COLOR_BUFFER_BIT);
-
+    
     gl.useProgram(program);
     let color = gl.getUniformLocation(program, "color");
     gl.uniform4f(color, 1.0, 1.0, 1.0, 1.0); //white
-    gl.drawArrays(gl.LINES, 0, grid.length);
-    
 
     if (!hidden) {    
+
+        if(protons.length > 0 || eletrons.length > 0)
+        gl.drawArrays(gl.LINES, 0, grid.length);
 
         gl.useProgram(chargesProgram);
         const colorC = gl.getUniformLocation(chargesProgram, "color"); 
