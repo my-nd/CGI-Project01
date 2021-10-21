@@ -72,8 +72,8 @@ void main()
         gl_Position.w = 1.0;
     }
     else {
-        gl_Position.x = vPosition.x / (table_width/2.0) + calculate().x / (table_width/2.0);
-        gl_Position.y = vPosition.y / (table_height/2.0) + calculate().y / (table_height/2.0);
+        gl_Position.x = vPosition.x / (table_width/2.0) + 0.01; // Teste para verificar se os dois pontos ficam distanciados
+        gl_Position.y = vPosition.y / (table_height/2.0) + 0.06;
         gl_Position.z = 0.0;
         gl_Position.w = 1.0;
     }
