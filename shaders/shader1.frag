@@ -1,8 +1,8 @@
 precision highp float;
 
-uniform vec4 color;
+uniform vec4 fColor;
 
 void main()
 {
-    gl_FragColor = color;
+    gl_FragColor = fColor;
 }
