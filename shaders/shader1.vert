@@ -62,8 +62,9 @@ vec4 calculate(){
             total += curr;}
     }
 
-    //if( distance(total, vec4(0.0, 0.0, 0.0, 1.0) ) > 5.0*0.05)
-        total = total / distance(total, vec4(0.0, 0.0, 0.0, 0.0));
+    if (length(total) > 0.25) {
+        total = normalize(total) * 0.25;
+    }
    
 
     return total;
