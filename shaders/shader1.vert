@@ -9,10 +9,12 @@ uniform vec2 eletronPos[MAX_CHARGES];
 uniform vec2 protonPos[MAX_CHARGES];
 uniform float isProtonPosEmpty;
 uniform float isEletronPosEmpty;
+uniform int eletronPosSize;
+uniform int protonPosSize;
 
 varying vec4 fColor; // necessário?
 
-const float charge = 0.00000001;
+const float charge = 0.000000000001;
 const float COULOUMB_CONSTANT = 8.99 * pow(10.0, 9.0);
 
 #define TWOPI 6.28318530718
@@ -52,11 +54,17 @@ vec4 calculate(){
         eE = COULOUMB_CONSTANT * (-charge) / (radiusE*radiusE);
         
         curr = vec4( eP * (protonPos[i].x - vPosition.x)/radiusP, eP * (protonPos[i].y - vPosition.y) / radiusP, 0.0, 0.0);
-        total += curr;
+        if(i < protonPosSize)
+            {total += curr;}
         
         curr = vec4( eE * (eletronPos[i].x - vPosition.x)/radiusE, eE * (eletronPos[i].y - vPosition.y) / radiusE, 0.0, 0.0);
-        total += curr;
+        if(i < eletronPosSize){
+            total += curr;}
     }
+
+    //if( distance(total, vec4(0.0, 0.0, 0.0, 1.0) ) > 5.0*0.05)
+        total = total / distance(total, vec4(0.0, 0.0, 0.0, 0.0));
+   
     return total;
 }
 

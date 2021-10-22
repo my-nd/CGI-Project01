@@ -33,6 +33,13 @@ function animate(time)
 
     const isEletronsEmpty = gl.getUniformLocation(program, "isEletronPosEmpty");
     const isProtonsEmpty = gl.getUniformLocation(program, "isProtonPosEmpty");
+    const eletronPosSize = gl.getUniformLocation(program, "eletronPosSize");
+    const protonPosSize = gl.getUniformLocation(program, "protonPosSize");
+
+    gl.uniform1i(eletronPosSize, eletrons.length);
+    gl.uniform1i(protonPosSize, protons.length);
+    
+
 
     if (protons.length == 0)
         gl.uniform1f(isProtonsEmpty, 1.0);
@@ -49,6 +56,7 @@ function animate(time)
         gl.useProgram(chargesProgram);
         const colorC = gl.getUniformLocation(chargesProgram, "fColor2"); 
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
+
 
 
         gl.bufferSubData(gl.ARRAY_BUFFER, (MV.sizeof['vec2']) * grid.length*2, MV.flatten(protons));
