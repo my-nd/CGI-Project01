@@ -30,13 +30,35 @@ function animate(time)
     gl.clear(gl.COLOR_BUFFER_BIT);
     
     gl.useProgram(program);
+<<<<<<< HEAD
 
+=======
+<<<<<<< HEAD
+
+    const isEletronsEmpty = gl.getUniformLocation(program, "isEletronPosEmpty");
+    const isProtonsEmpty = gl.getUniformLocation(program, "isProtonPosEmpty");
+>>>>>>> ea85ea1879875c2b26dcff75c781a134f4fa7773
     const eletronPosSize = gl.getUniformLocation(program, "eletronPosSize");
     const protonPosSize = gl.getUniformLocation(program, "protonPosSize");
 
     gl.uniform1i(eletronPosSize, eletrons.length);
     gl.uniform1i(protonPosSize, protons.length);
     
+<<<<<<< HEAD
+=======
+
+
+    if (protons.length == 0)
+        gl.uniform1f(isProtonsEmpty, 1.0);
+    else gl.uniform1f(isProtonsEmpty, 0.0);
+
+    if (eletrons.length == 0)
+        gl.uniform1f(isEletronsEmpty, 1.0);
+    else gl.uniform1f(isEletronsEmpty, 0.0);
+
+=======
+>>>>>>> 6b1469e9421e3c95d77bde1f60431a7dc73d9b9b
+>>>>>>> ea85ea1879875c2b26dcff75c781a134f4fa7773
     gl.drawArrays(gl.LINES, 0, grid.length);
 
     if (!hidden) {    

@@ -11,6 +11,13 @@ uniform float isProtonPosEmpty;
 uniform float isEletronPosEmpty;
 uniform int eletronPosSize;
 uniform int protonPosSize;
+<<<<<<< HEAD
+=======
+uniform vec3 eletronPos[MAX_CHARGES];
+uniform vec3 protonPos[MAX_CHARGES];
+
+
+>>>>>>> ea85ea1879875c2b26dcff75c781a134f4fa7773
 
 varying vec4 fColor; // necessário?
 
@@ -57,6 +64,7 @@ vec4 calculate(){
         if(i < protonPosSize)
             {total += curr;}
         
+<<<<<<< HEAD
         curr = vec4( eE * (eletronPos[i].x - vPosition.x)/radiusE, eE * (eletronPos[i].y - vPosition.y) / radiusE, 0.0, 0.0);
         if(i < eletronPosSize){
             total += curr;}
@@ -65,6 +73,39 @@ vec4 calculate(){
     //if( distance(total, vec4(0.0, 0.0, 0.0, 1.0) ) > 5.0*0.05)
         total = total / distance(total, vec4(0.0, 0.0, 0.0, 0.0));
    
+=======
+        
+<<<<<<< HEAD
+        curr = vec4( eP * (protonPos[i].x - vPosition.x)/radiusP, eP * (protonPos[i].y - vPosition.y) / radiusP, 0.0, 0.0);
+        if(i < protonPosSize)
+            {total += curr;}
+        
+        curr = vec4( eE * (eletronPos[i].x - vPosition.x)/radiusE, eE * (eletronPos[i].y - vPosition.y) / radiusE, 0.0, 0.0);
+        if(i < eletronPosSize){
+            total += curr;}
+    }
+
+    //if( distance(total, vec4(0.0, 0.0, 0.0, 1.0) ) > 5.0*0.05)
+        total = total / distance(total, vec4(0.0, 0.0, 0.0, 0.0));
+   
+=======
+    }
+    for(int i = 0; i < MAX_CHARGES/2; i++) {
+        if (eletronPos[i].z != 0.0) {
+            radiusE = distance(vec2(eletronPos[i].x, eletronPos[i].y), vec2(vPosition.x, vPosition.y));
+            eE = COULOUMB_CONSTANT * (eletronPos[i].z) / (radiusE*radiusE);
+            curr = vec4( eE * (eletronPos[i].x - vPosition.x)/radiusE, eE * (eletronPos[i].y - vPosition.y) / radiusE, 0.0, 0.0);
+            total += curr;
+        }
+        
+    }
+
+    if (length(total) > 0.25) {
+        total = normalize(total) * 0.2;
+    }
+
+>>>>>>> 6b1469e9421e3c95d77bde1f60431a7dc73d9b9b
+>>>>>>> ea85ea1879875c2b26dcff75c781a134f4fa7773
     return total;
 }
 
