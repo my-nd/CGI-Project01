@@ -30,30 +30,38 @@ function animate(time)
     gl.clear(gl.COLOR_BUFFER_BIT);
     
     gl.useProgram(program);
+
+    const eletronPosSize = gl.getUniformLocation(program, "eletronPosSize");
+    const protonPosSize = gl.getUniformLocation(program, "protonPosSize");
+
+    gl.uniform1i(eletronPosSize, eletrons.length);
+    gl.uniform1i(protonPosSize, protons.length);
+    
     gl.drawArrays(gl.LINES, 0, grid.length);
 
     if (!hidden) {    
 
         gl.useProgram(chargesProgram);
 
+
         gl.bufferSubData(gl.ARRAY_BUFFER, (MV.sizeof['vec2']) * grid.length*2, MV.flatten(protons));
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length*2) + (MAX_CHARGES/2) * MV.sizeof['vec3'], MV.flatten(eletrons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length*2) + (MAX_CHARGES/2) * MV.sizeof['vec2'], MV.flatten(eletrons));
 
         gl.useProgram(program);
         for(let i=0; i<protons.length; i++) {           
             const protonPos = gl.getUniformLocation(program, "protonPos[" + i + "]");
-            gl.uniform3fv(protonPos, MV.flatten(protons[i]));
+            gl.uniform2fv(protonPos, MV.flatten(protons[i]));
         }
 
         for(let i=0; i<eletrons.length; i++) {           
             const eletronPos = gl.getUniformLocation(program, "eletronPos[" + i + "]");
-            gl.uniform3fv(eletronPos, MV.flatten(eletrons[i]));
+            gl.uniform2fv(eletronPos, MV.flatten(eletrons[i]));
         }
 
     
 
         gl.useProgram(chargesProgram);
-        const colorC = gl.getUniformLocation(chargesProgram, "fColor2"); 
+        const colorC = gl.getUniformLocation(chargesProgram, "color"); 
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
         gl.drawArrays(gl.POINTS, grid.length*2, protons.length);
         gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges    
@@ -97,7 +105,7 @@ function setup(shaders)
 
     const aBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, aBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, grid.length*2 * MV.sizeof['vec2'] + MAX_CHARGES * MV.sizeof['vec3'], gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, (grid.length*2 + MAX_CHARGES) * MV.sizeof['vec2'], gl.STATIC_DRAW);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, MV.flatten(grid));
     gl.bufferSubData(gl.ARRAY_BUFFER, grid.length*MV.sizeof['vec2'], MV.flatten(isMoving));
 
@@ -169,7 +177,7 @@ function addProtons(event){
     let table_x = (x - canvas.width/2) / canvas.width * TABLE_WIDTH;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
 
-    protons.push(MV.vec3(table_x, table_y, 1.0));
+    protons.push(MV.vec2(table_x, table_y));
 }
 
 
@@ -183,7 +191,7 @@ function addEletrons(event){
 
     let table_x = (x - canvas.width/2) / canvas.width * TABLE_WIDTH;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
-    eletrons.push(MV.vec3(table_x, table_y, -1.0));
+    eletrons.push(MV.vec2(table_x, table_y));
  }
 
 
