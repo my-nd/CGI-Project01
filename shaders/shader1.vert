@@ -14,7 +14,7 @@ uniform int protonPosSize;
 
 varying vec4 fColor; // necessário?
 
-const float charge = 0.000000000001;
+const float charge = 0.00000000005;
 const float COULOUMB_CONSTANT = 8.99 * pow(10.0, 9.0);
 
 #define TWOPI 6.28318530718
@@ -50,8 +50,8 @@ vec4 calculate(){
     for(int i = 0; i < MAX_CHARGES; i++){
         radiusP = distance(vec2(protonPos[i].x, protonPos[i].y), vec2(vPosition.x, vPosition.y));
         radiusE = distance(vec2(eletronPos[i].x, eletronPos[i].y), vec2(vPosition.x, vPosition.y));
-        eP = COULOUMB_CONSTANT * charge / (radiusP*radiusP);
-        eE = COULOUMB_CONSTANT * (-charge) / (radiusE*radiusE);
+        eP = COULOUMB_CONSTANT * (-charge) / (radiusP*radiusP);
+        eE = COULOUMB_CONSTANT * (charge) / (radiusE*radiusE);
         
         curr = vec4( eP * (protonPos[i].x - vPosition.x)/radiusP, eP * (protonPos[i].y - vPosition.y) / radiusP, 0.0, 0.0);
         if(i < protonPosSize)
@@ -80,15 +80,17 @@ void main()
         gl_Position.y = vPosition.y / (table_height/2.0);
         gl_Position.z = 0.0;
         gl_Position.w = 1.0;
+        fColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
     else {
         gl_Position.x = vPosition.x / (table_width/2.0) + calculate().x / (table_width/2.0);
         gl_Position.y = vPosition.y / (table_height/2.0) + calculate().y / (table_height/2.0);
         gl_Position.z = 0.0;
         gl_Position.w = 1.0;
+        fColor = colorize(vec2(gl_Position.x, gl_Position.y)); 
     }
     
-    fColor = colorize(vec2(gl_Position.x, gl_Position.y));   
+      
 
     
 }

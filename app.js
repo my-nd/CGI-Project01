@@ -30,7 +30,7 @@ function animate(time)
     gl.clear(gl.COLOR_BUFFER_BIT);
     
     gl.useProgram(program);
-    
+
     const eletronPosSize = gl.getUniformLocation(program, "eletronPosSize");
     const protonPosSize = gl.getUniformLocation(program, "protonPosSize");
 
@@ -93,8 +93,10 @@ function setup(shaders)
 
     for(let x = -TABLE_WIDTH/2; x <= TABLE_WIDTH/2; x += GRID_SPACING) {
         for(let y = -table_height/2; y <= table_height/2; y += GRID_SPACING) {
-            grid.push(MV.vec2(x, y));
-            grid.push(MV.vec2(x, y));
+            let newX = getRandomArbitrary(-GRID_SPACING/2, GRID_SPACING/2);
+            let newY = getRandomArbitrary(-GRID_SPACING/2, GRID_SPACING/2);
+            grid.push(MV.vec2(x+newX, y+newY));
+            grid.push(MV.vec2(x+newX, y+newY));
         }
     }
 
@@ -144,6 +146,10 @@ function setup(shaders)
     window.requestAnimationFrame(animate);
 
 
+}
+
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
 }
 
 function resizeCanvas(){
