@@ -11,6 +11,10 @@ uniform float isProtonPosEmpty;
 uniform float isEletronPosEmpty;
 uniform int eletronPosSize;
 uniform int protonPosSize;
+uniform vec3 eletronPos[MAX_CHARGES];
+uniform vec3 protonPos[MAX_CHARGES];
+
+
 
 varying vec4 fColor; // necessário?
 
@@ -47,12 +51,17 @@ vec4 calculate(){
     vec4 curr;
     vec4 total = vec4(0.0, 0.0, 0.0, 1.0);
 
-    for(int i = 0; i < MAX_CHARGES; i++){
-        radiusP = distance(vec2(protonPos[i].x, protonPos[i].y), vec2(vPosition.x, vPosition.y));
-        radiusE = distance(vec2(eletronPos[i].x, eletronPos[i].y), vec2(vPosition.x, vPosition.y));
-        eP = COULOUMB_CONSTANT * charge / (radiusP*radiusP);
-        eE = COULOUMB_CONSTANT * (-charge) / (radiusE*radiusE);
+    for(int i = 0; i < MAX_CHARGES/2; i++){
+        if (protonPos[i].z != 0.0) {
+            radiusP = distance(vec2(protonPos[i].x, protonPos[i].y), vec2(vPosition.x, vPosition.y));
+            eP = COULOUMB_CONSTANT * protonPos[i].z / (radiusP*radiusP);
+            curr = vec4( eP * (protonPos[i].x - vPosition.x)/radiusP, eP * (protonPos[i].y - vPosition.y) / radiusP, 0.0, 0.0);
+            total += curr;
+        }
         
+        
+        
+<<<<<<< HEAD
         curr = vec4( eP * (protonPos[i].x - vPosition.x)/radiusP, eP * (protonPos[i].y - vPosition.y) / radiusP, 0.0, 0.0);
         if(i < protonPosSize)
             {total += curr;}
@@ -65,6 +74,23 @@ vec4 calculate(){
     //if( distance(total, vec4(0.0, 0.0, 0.0, 1.0) ) > 5.0*0.05)
         total = total / distance(total, vec4(0.0, 0.0, 0.0, 0.0));
    
+=======
+    }
+    for(int i = 0; i < MAX_CHARGES/2; i++) {
+        if (eletronPos[i].z != 0.0) {
+            radiusE = distance(vec2(eletronPos[i].x, eletronPos[i].y), vec2(vPosition.x, vPosition.y));
+            eE = COULOUMB_CONSTANT * (eletronPos[i].z) / (radiusE*radiusE);
+            curr = vec4( eE * (eletronPos[i].x - vPosition.x)/radiusE, eE * (eletronPos[i].y - vPosition.y) / radiusE, 0.0, 0.0);
+            total += curr;
+        }
+        
+    }
+
+    if (length(total) > 0.25) {
+        total = normalize(total) * 0.2;
+    }
+
+>>>>>>> 6b1469e9421e3c95d77bde1f60431a7dc73d9b9b
     return total;
 }
 
@@ -80,8 +106,8 @@ void main()
         gl_Position.w = 1.0;
     }
     else {
-        gl_Position.x = vPosition.x / (table_width/2.0) + calculate().x / (table_width/2.0);
-        gl_Position.y = vPosition.y / (table_height/2.0) + calculate().y / (table_height/2.0);
+        gl_Position.x = (vPosition.x + calculate().x) / (table_width/2.0); // Teste para verificar se os dois pontos ficam distanciados
+        gl_Position.y = (vPosition.y + calculate().y) / (table_height/2.0);
         gl_Position.z = 0.0;
         gl_Position.w = 1.0;
     }
