@@ -78,6 +78,10 @@ function setup(shaders)
 {
     canvas = document.getElementById("gl-canvas");
     gl = UTILS.setupWebGL(canvas);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    
+    
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight; 

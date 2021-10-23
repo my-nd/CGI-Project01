@@ -14,7 +14,7 @@ uniform int protonPosSize;
 
 varying vec4 fColor; // necessário?
 
-const float charge = 0.00000000005;
+const float charge = 0.00000000002;
 const float COULOUMB_CONSTANT = 8.99 * pow(10.0, 9.0);
 
 #define TWOPI 6.28318530718
@@ -55,11 +55,11 @@ vec4 calculate(){
         
         curr = vec4( eP * (protonPos[i].x - vPosition.x)/radiusP, eP * (protonPos[i].y - vPosition.y) / radiusP, 0.0, 0.0);
         if(i < protonPosSize)
-            {total += curr;}
+            total += curr;
         
         curr = vec4( eE * (eletronPos[i].x - vPosition.x)/radiusE, eE * (eletronPos[i].y - vPosition.y) / radiusE, 0.0, 0.0);
-        if(i < eletronPosSize){
-            total += curr;}
+        if(i < eletronPosSize)
+            total += curr;
     }
 
     if (length(total) > 0.25) {
