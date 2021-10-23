@@ -62,9 +62,8 @@ vec4 calculate(){
             total += curr;
     }
 
-    if (length(total) > 0.25) {
+    if (length(total) > 0.25)
         total = normalize(total) * 0.25;
-    }
    
 
     return total;

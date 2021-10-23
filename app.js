@@ -15,7 +15,7 @@ const GRID_SPACING = 0.05;
 let grid = [];
 let isMoving = [];
 
-const MAX_CHARGES = 200;
+const MAX_CHARGES = 20;
 let protons = [];
 let eletrons = [];
 
@@ -43,11 +43,11 @@ function animate(time)
 
         gl.useProgram(chargesProgram);
 
-
         gl.bufferSubData(gl.ARRAY_BUFFER, (MV.sizeof['vec2']) * grid.length*2, MV.flatten(protons));
-        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length*2) + (MAX_CHARGES/2) * MV.sizeof['vec2'], MV.flatten(eletrons));
+        gl.bufferSubData(gl.ARRAY_BUFFER, MV.sizeof['vec2'] * (grid.length*2) + protons.length * MV.sizeof['vec2'], MV.flatten(eletrons));
 
         gl.useProgram(program);
+        
         for(let i=0; i<protons.length; i++) {           
             const protonPos = gl.getUniformLocation(program, "protonPos[" + i + "]");
             gl.uniform2fv(protonPos, MV.flatten(protons[i]));
@@ -61,11 +61,12 @@ function animate(time)
     
 
         gl.useProgram(chargesProgram);
+        
         const colorC = gl.getUniformLocation(chargesProgram, "color"); 
         gl.uniform4f(colorC, 0.0, 1.0, 0.0, 1.0); // green: positive charges
         gl.drawArrays(gl.POINTS, grid.length*2, protons.length);
         gl.uniform4f(colorC, 1.0, 0.0, 0.0, 1.0); // red: negative charges    
-        gl.drawArrays(gl.POINTS, grid.length*2 + MAX_CHARGES / 2, eletrons.length);
+        gl.drawArrays(gl.POINTS, grid.length*2 + protons.length, eletrons.length);
 
         updateChargesPosition();
     }
@@ -187,7 +188,8 @@ function addProtons(event){
     let table_x = (x - canvas.width/2) / canvas.width * TABLE_WIDTH;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
 
-    protons.push(MV.vec2(table_x, table_y));
+    if(eletrons.length + protons.length < MAX_CHARGES)
+        protons.push(MV.vec2(table_x, table_y));
 }
 
 
@@ -201,19 +203,22 @@ function addEletrons(event){
 
     let table_x = (x - canvas.width/2) / canvas.width * TABLE_WIDTH;
     let table_y = -(y - canvas.height/2) / canvas.height * table_height;
-    eletrons.push(MV.vec2(table_x, table_y));
+    
+    if(eletrons.length + protons.length < MAX_CHARGES)
+        eletrons.push(MV.vec2(table_x, table_y));
  }
 
 
 function updateChargesPosition(){
+    let oldX;
     for(let i = 0; i < protons.length; i++){
-        let oldX = protons[i][0];
+        oldX = protons[i][0];
         protons[i][0] = Math.cos(PROTONS_ANGLE_INCREMENT) * protons[i][0] - Math.sin(PROTONS_ANGLE_INCREMENT) * protons[i][1];
         protons[i][1] = Math.sin(PROTONS_ANGLE_INCREMENT) * oldX + Math.cos(PROTONS_ANGLE_INCREMENT) * protons[i][1];
     }
 
     for(let i = 0; i < eletrons.length; i++){
-        let oldX = eletrons[i][0];
+        oldX = eletrons[i][0];
         eletrons[i][0] = Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][0] - Math.sin(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
         eletrons[i][1] = Math.sin(ELETRONS_ANGLE_INCREMENT) * oldX + Math.cos(ELETRONS_ANGLE_INCREMENT) * eletrons[i][1];
     }
