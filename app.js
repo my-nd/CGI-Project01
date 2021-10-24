@@ -36,9 +36,7 @@ function animate(time)
 
     gl.uniform1i(eletronPosSize, eletrons.length);
     gl.uniform1i(protonPosSize, protons.length);
-
     
-
     if (!hidden) {    
 
         gl.drawArrays(gl.LINES, 0, grid.length);
