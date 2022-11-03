@@ -1,2 +1,2 @@
-# Projeto1
-Primeiro projeto de CGI 2021
+# 1st CGI Project
+CGI program in webGL simulating centrifugal forces.
